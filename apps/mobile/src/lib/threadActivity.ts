@@ -1089,8 +1089,13 @@ function deriveThreadFeedRunFolds(
   let runlessKey: RunId | null = null;
   let responseKey: RunId | null = null;
   let pendingUserBoundary: string | null = null;
+  let awaitingSteerReply = false;
+  const steerReplyIds = new Set<string>();
   for (const [index, entry] of feed.entries()) {
     if (entry.type === "message" && entry.message.role === "user") {
+      awaitingSteerReply =
+        entry.message.inputIntent === "steer" ||
+        entry.message.inputIntent === "promoted_queued_to_steer";
       pendingUserBoundary = entry.message.createdAt;
       runlessKey = entry.message.runId == null ? RunId.make(`runless:${entry.id}`) : null;
       responseKey = entry.message.runId ?? runlessKey;
@@ -1118,6 +1123,8 @@ function deriveThreadFeedRunFolds(
     }
     group.entries.push(entry);
     if (entry.type === "message") {
+      if (awaitingSteerReply) steerReplyIds.add(entry.id);
+      awaitingSteerReply = false;
       terminalAssistantMessageIdByRun.set(runId, entry.id);
     }
     if (entry.type !== "activity-group") continue;
@@ -1153,6 +1160,7 @@ function deriveThreadFeedRunFolds(
         .filter(
           (entry) =>
             entry.id !== terminalAssistantId &&
+            !steerReplyIds.has(entry.id) &&
             entry.type !== "html-render" &&
             entry.type !== "mcp-app" &&
             !(entry.type === "activity-group" && isContextCompactionActivityGroup(entry)) &&

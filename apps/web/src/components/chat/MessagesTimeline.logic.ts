@@ -1119,6 +1119,10 @@ function deriveTurnFolds(input: {
       continue;
     }
     const hiddenEntryIds = new Set<string>();
+    const steerReplies = group.steerSegments.map(
+      ({ startIndex }) =>
+        group.entries.slice(startIndex).find((entry) => entry.kind === "message")?.id,
+    );
     const terminalEntryIndex = group.terminalEntry
       ? group.entries.findIndex((entry) => entry.id === group.terminalEntry?.id)
       : group.entries.length;
@@ -1138,7 +1142,8 @@ function deriveTurnFolds(input: {
         isCompaction ||
         timelineEntryIsPersistentResourceCard(entry) ||
         input.liveSubagentEntryIds.has(entry.id) ||
-        input.completeSupersededReplyEntryIds.has(entry.id)
+        input.completeSupersededReplyEntryIds.has(entry.id) ||
+        steerReplies.includes(entry.id)
       ) {
         continue;
       }

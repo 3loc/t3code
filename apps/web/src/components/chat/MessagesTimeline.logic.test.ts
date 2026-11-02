@@ -1358,7 +1358,9 @@ describe("deriveMessagesTimelineRows", () => {
           message("prompt", 0, "user", "turn_start"),
           work("work-before-steer", 4),
           message("steer", 10, "user", "steer"),
+          message("reply", 12, "assistant"),
           work("work-after-steer", 15),
+          message("commentary", 20, "assistant"),
           message("final", 30, "assistant"),
         ],
         latestRun: { runId, status: "completed", startedAt: time(0), completedAt: time(30) },
@@ -1375,6 +1377,7 @@ describe("deriveMessagesTimelineRows", () => {
       `turn-fold:${runId}`,
       "steer",
       `turn-fold:${segmentKey}`,
+      "reply",
       "final",
     ]);
     expect(collapsed[1]).toMatchObject({ label: "Worked for 30s" });
@@ -1385,7 +1388,9 @@ describe("deriveMessagesTimelineRows", () => {
       `turn-fold:${runId}`,
       "steer",
       `turn-fold:${segmentKey}`,
+      "reply",
       "work-after-steer",
+      "commentary",
       "final",
     ]);
   });
@@ -3727,6 +3732,7 @@ describe("linked timeline resources", () => {
       message("steer", "user", 1),
       event("created", "thread_created"),
       message("after-steer", "assistant", 3),
+      message("later", "assistant", 3),
       message("final", "assistant", 4),
     ];
     const segmentKey = RunId.make(`${runId}:steer:steer`);
@@ -3743,6 +3749,7 @@ describe("linked timeline resources", () => {
       `turn-fold:${segmentKey}`,
       "created",
       "after-steer",
+      "later",
       "final",
       "summary:created",
       "assistant-meta:final",
